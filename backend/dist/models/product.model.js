@@ -37,12 +37,12 @@ exports.Product = void 0;
 const mongoose_1 = __importStar(require("mongoose"));
 const ProductSchema = new mongoose_1.Schema({
     title: { type: String, required: true },
-    desc: { type: String, required: true },
+    description: { type: String, required: true },
     category: { type: String, required: true },
     price: { type: Number, required: true },
     stock: { type: Number, required: true },
     brand: { type: String, required: true },
-    image: { type: String, required: true },
+    images: { type: String, required: true },
     thumbnail: { type: String, required: true },
 }, {
     timestamps: true,

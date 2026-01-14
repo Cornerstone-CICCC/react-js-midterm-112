@@ -50,4 +50,5 @@ const CartSchema = new mongoose_1.Schema({
 }, {
     timestamps: true,
 });
+CartSchema.index({ userId: 1, productId: 1 }, { unique: true });
 exports.Cart = mongoose_1.default.model("Cart", CartSchema);

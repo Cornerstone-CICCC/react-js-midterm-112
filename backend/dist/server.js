@@ -10,6 +10,7 @@ const cookie_session_1 = __importDefault(require("cookie-session"));
 const user_routes_1 = __importDefault(require("./routes/user.routes"));
 const dotenv_1 = __importDefault(require("dotenv"));
 const product_route_1 = __importDefault(require("./routes/product.route"));
+const cart_route_1 = __importDefault(require("./routes/cart.route"));
 dotenv_1.default.config();
 // Create Server
 const app = (0, express_1.default)();
@@ -30,6 +31,7 @@ app.use(express_1.default.json());
 //Routes
 app.use("/users", user_routes_1.default);
 app.use("/products", product_route_1.default);
+app.use("/carts", cart_route_1.default);
 app.get("/", (req, res) => {
     res.status(200).send("Server is running");
 });

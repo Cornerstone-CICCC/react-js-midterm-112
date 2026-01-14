@@ -14,6 +14,38 @@ const product_model_1 = require("../models/product.model");
 const getAll = () => __awaiter(void 0, void 0, void 0, function* () {
     return yield product_model_1.Product.find();
 });
+// Get product by id
+const getById = (id) => __awaiter(void 0, void 0, void 0, function* () {
+    return yield product_model_1.Product.findById(id);
+});
+// Get products by category
+const getByCategory = (category) => __awaiter(void 0, void 0, void 0, function* () {
+    if (!category || typeof category !== "string") {
+        return [];
+    }
+    return yield product_model_1.Product.find({
+        category: { $regex: category, $options: "i" },
+    });
+});
+// Add product
+const add = (newProduct) => __awaiter(void 0, void 0, void 0, function* () {
+    return yield product_model_1.Product.create(newProduct);
+});
+// Update Product by id
+const update = (id, data) => __awaiter(void 0, void 0, void 0, function* () {
+    return yield product_model_1.Product.findByIdAndUpdate(id, data, {
+        new: true,
+    });
+});
+// delete product
+const remove = (id) => __awaiter(void 0, void 0, void 0, function* () {
+    return yield product_model_1.Product.findByIdAndDelete(id);
+});
 exports.default = {
     getAll,
+    getByCategory,
+    getById,
+    add,
+    update,
+    remove,
 };
