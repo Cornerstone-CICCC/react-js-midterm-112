@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import styled from "styled-components";
 import ProductCard from "../components/ProductCard";
+import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
 
 const PageContainer = styled.div`
   max-width: 1120px;
@@ -28,6 +29,7 @@ const ProductListPage: React.FC = () => {
   const [allProducts, setAllProducts] = useState<any[]>([]);
   const [displayProducts, setDisplayProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState(""); // 검색어 상태 추가
 
   const [searchParams, setSearchParams] = useSearchParams();
   const categoryParam = searchParams.get("category");
@@ -54,6 +56,10 @@ const ProductListPage: React.FC = () => {
         );
         setAllProducts(filtered);
         setLoading(false);
+      })
+      .catch((err) => {
+        console.error("Failed to fetch products:", err);
+        setLoading(false);
       });
   }, []);
 
@@ -66,6 +72,7 @@ const ProductListPage: React.FC = () => {
     setSelectedBrands([]);
   }, [categoryParam]);
 
+  // 필터링 통합 로직 (카테고리 + 브랜드 + 검색어)
   useEffect(() => {
     let filtered = [...allProducts];
 
@@ -77,8 +84,17 @@ const ProductListPage: React.FC = () => {
       filtered = filtered.filter((p) => selectedBrands.includes(p.brand));
     }
 
+    if (searchTerm) {
+      const query = searchTerm.toLowerCase();
+      filtered = filtered.filter(
+        (p) =>
+          p.title.toLowerCase().includes(query) ||
+          p.brand.toLowerCase().includes(query)
+      );
+    }
+
     setDisplayProducts(filtered);
-  }, [selectedCategory, selectedBrands, allProducts]);
+  }, [selectedCategory, selectedBrands, searchTerm, allProducts]);
 
   const handleCategoryChange = (cat: string) => {
     if (cat === "all") {
@@ -108,7 +124,9 @@ const ProductListPage: React.FC = () => {
           <div className="flex flex-col gap-3">
             <button
               onClick={() => handleCategoryChange("all")}
-              className={`text-left text-sm ${selectedCategory === "all" ? "font-bold text-black" : "text-[#989898]"}`}
+              className={`text-left text-sm ${
+                selectedCategory === "all" ? "font-bold text-black" : "text-[#989898]"
+              }`}
             >
               All Products
             </button>
@@ -116,7 +134,9 @@ const ProductListPage: React.FC = () => {
               <button
                 key={cat}
                 onClick={() => handleCategoryChange(cat)}
-                className={`text-left text-sm capitalize ${selectedCategory === cat ? "font-bold text-black" : "text-[#989898]"}`}
+                className={`text-left text-sm capitalize ${
+                  selectedCategory === cat ? "font-bold text-black" : "text-[#989898]"
+                }`}
               >
                 {cat.replace("-", " ")}
               </button>
@@ -148,13 +168,29 @@ const ProductListPage: React.FC = () => {
       </FilterSidebar>
 
       <ProductGridSection>
-        <div className="flex justify-between items-center mb-8">
-          <p className="text-[#8B8B8B]">
-            Selected Products:{" "}
-            <span className="text-black font-bold">
-              {displayProducts.length}
+        {/* 검색창 UI 영역 */}
+        <div className="mb-8 space-y-6">
+          <div className="relative max-w-md">
+            <span className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+              <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
             </span>
-          </p>
+            <input
+              type="text"
+              placeholder="Search products or brands..."
+              className="block w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl focus:bg-white focus:ring-2 focus:ring-black focus:border-transparent transition-all outline-none text-sm"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+
+          <div className="flex justify-between items-center">
+            <p className="text-[#8B8B8B] text-sm">
+              Selected Products:{" "}
+              <span className="text-black font-bold">
+                {displayProducts.length}
+              </span>
+            </p>
+          </div>
         </div>
 
         {loading ? (
@@ -168,8 +204,16 @@ const ProductListPage: React.FC = () => {
             ))}
           </div>
         ) : (
-          <div className="text-center py-40 text-gray-500">
-            No products found for this filter.
+          <div className="text-center py-40 bg-gray-50 rounded-[32px] border border-dashed border-gray-200">
+            <p className="text-gray-500 font-medium">
+              No products found for this filter.
+            </p>
+            <button 
+              onClick={() => {setSearchTerm(""); setSelectedBrands([]);}}
+              className="mt-4 text-sm font-bold underline"
+            >
+              Reset Filters
+            </button>
           </div>
         )}
       </ProductGridSection>
