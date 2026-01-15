@@ -28,8 +28,8 @@ const getByLoginId = (loginId) => __awaiter(void 0, void 0, void 0, function* ()
 });
 // Add new user
 const add = (newUser) => __awaiter(void 0, void 0, void 0, function* () {
-    const { loginId, password, firstname, lastname } = newUser;
-    if (!loginId || !password || !firstname || !lastname)
+    const { loginId, password, firstname, lastname, role } = newUser;
+    if (!loginId || !password || !firstname || !lastname || !role)
         return false;
     // check if there's already existed loginId
     const foundUser = yield getByLoginId(loginId);
@@ -41,6 +41,7 @@ const add = (newUser) => __awaiter(void 0, void 0, void 0, function* () {
         password: hashedPassword,
         firstname,
         lastname,
+        role,
     });
 });
 //update user
@@ -64,6 +65,18 @@ const login = (details) => __awaiter(void 0, void 0, void 0, function* () {
         return false;
     return foundUser;
 });
+// check auth
+const checkAdmin = (loginId) => __awaiter(void 0, void 0, void 0, function* () {
+    const foundUser = yield getByLoginId(loginId);
+    if (!foundUser)
+        return false;
+    const role = foundUser.role; // 'user' or 'admin'
+    if (role === "admin") {
+        return true;
+    }
+    else
+        return false;
+});
 exports.default = {
     getAll,
     getById,
@@ -72,4 +85,5 @@ exports.default = {
     update,
     remove,
     login,
+    checkAdmin,
 };

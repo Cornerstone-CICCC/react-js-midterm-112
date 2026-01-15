@@ -19,8 +19,8 @@ const getByLoginId = async (loginId: string) => {
 
 // Add new user
 const add = async (newUser: Partial<IUser>) => {
-  const { loginId, password, firstname, lastname } = newUser;
-  if (!loginId || !password || !firstname || !lastname) return false;
+  const { loginId, password, firstname, lastname, role } = newUser;
+  if (!loginId || !password || !firstname || !lastname || !role) return false;
 
   // check if there's already existed loginId
   const foundUser = await getByLoginId(loginId);
@@ -33,6 +33,7 @@ const add = async (newUser: Partial<IUser>) => {
     password: hashedPassword,
     firstname,
     lastname,
+    role,
   });
 };
 
@@ -59,6 +60,17 @@ const login = async (details: ILoginDTO) => {
   return foundUser;
 };
 
+// check auth
+const checkAdmin = async (loginId: string) => {
+  const foundUser = await getByLoginId(loginId);
+  if (!foundUser) return false;
+
+  const role = foundUser.role; // 'user' or 'admin'
+  if (role === "admin") {
+    return true;
+  } else return false;
+};
+
 export default {
   getAll,
   getById,
@@ -67,4 +79,5 @@ export default {
   update,
   remove,
   login,
+  checkAdmin,
 };
