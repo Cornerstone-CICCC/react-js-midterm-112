@@ -13,7 +13,8 @@ import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
 import { useWishlist } from "../context/WishlistContext";
 
-const SearchContainer = styled.div`
+const SearchContainer = styled.form`
+  // div에서 form으로 변경하여 submit 이벤트 처리
   background-color: #f5f5f5;
   border-radius: 8px;
   display: flex;
@@ -75,12 +76,25 @@ const Header: React.FC = () => {
   const { user, logout } = useAuth();
   const { wishlistItems } = useWishlist();
   const [isCartOpen, setIsCartOpen] = useState(false);
+
+  // 검색을 위한 상태 추가
+  const [keyword, setKeyword] = useState("");
   const navigate = useNavigate();
 
   const handleLogout = () => {
     if (window.confirm("Are you sure you want to logout?")) {
       logout();
       navigate("/");
+    }
+  };
+
+  // 검색 실행 함수
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (keyword.trim()) {
+      // 엔터를 치면 /products 페이지로 검색어를 들고 이동합니다.
+      navigate(`/products?search=${encodeURIComponent(keyword)}`);
+      setKeyword(""); // 입력창 초기화
     }
   };
 
@@ -108,9 +122,18 @@ const Header: React.FC = () => {
           </NavLink>
         </nav>
 
-        <SearchContainer className="hidden md:flex mx-4">
+        {/* Search 영역: onSubmit 연결 및 input value/onChange 연결 */}
+        <SearchContainer
+          className="hidden md:flex mx-4"
+          onSubmit={handleSearch}
+        >
           <MagnifyingGlassIcon className="w-5 h-5 text-gray-400" />
-          <input type="text" placeholder="Search" />
+          <input
+            type="text"
+            placeholder="Search"
+            value={keyword}
+            onChange={(e) => setKeyword(e.target.value)}
+          />
         </SearchContainer>
 
         <div className="flex items-center gap-5">
