@@ -7,12 +7,10 @@ import { ILoginDTO } from "../types/loginDTO";
 const getAllUsers = async (req: Request, res: Response) => {
   try {
     const users = await userService.getAll();
-
     if (!users) {
       res.status(500).json({ message: "Unable to find users" });
       return;
     }
-
     res.status(200).json(users);
   } catch (err) {
     console.error(err);
@@ -55,14 +53,15 @@ const getUserByLoginId = async (
 
 //Sign up
 const addUser = async (req: Request<{}, IUser>, res: Response) => {
-  const { loginId, password, firstname, lastname } = req.body;
+  const { loginId, password, firstname, lastname, role } = req.body;
 
   try {
     if (
       !loginId.trim() ||
       !password.trim() ||
       !firstname.trim() ||
-      !lastname.trim()
+      !lastname.trim() ||
+      !role.trim()
     ) {
       res.status(500).json({
         message: "Missing informations",
@@ -75,6 +74,7 @@ const addUser = async (req: Request<{}, IUser>, res: Response) => {
       password,
       firstname,
       lastname,
+      role,
     });
     if (!newUser) {
       res.status(500).json({
@@ -111,7 +111,9 @@ const login = async (req: Request<{}, {}, ILoginDTO>, res: Response) => {
       req.session.user = {
         loginId: user.loginId,
         firstname: user.firstname,
+        role: user.role,
       };
+      console.log(req.session.user);
     }
 
     res.status(200).json({

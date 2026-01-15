@@ -60,12 +60,13 @@ const getUserByLoginId = (req, res) => __awaiter(void 0, void 0, void 0, functio
 });
 //Sign up
 const addUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { loginId, password, firstname, lastname } = req.body;
+    const { loginId, password, firstname, lastname, role } = req.body;
     try {
         if (!loginId.trim() ||
             !password.trim() ||
             !firstname.trim() ||
-            !lastname.trim()) {
+            !lastname.trim() ||
+            !role.trim()) {
             res.status(500).json({
                 message: "Missing informations",
             });
@@ -76,6 +77,7 @@ const addUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             password,
             firstname,
             lastname,
+            role,
         });
         if (!newUser) {
             res.status(500).json({
@@ -110,7 +112,9 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             req.session.user = {
                 loginId: user.loginId,
                 firstname: user.firstname,
+                role: user.role,
             };
+            console.log(req.session.user);
         }
         res.status(200).json({
             message: "Login successful",
