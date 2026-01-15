@@ -1,228 +1,224 @@
 import React, { useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import styled from "styled-components";
-import ProductCard from "../components/ProductCard";
-import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
+import {
+  FunnelIcon,
+  ArrowsUpDownIcon,
+  MagnifyingGlassIcon,
+} from "@heroicons/react/24/outline";
 
-const PageContainer = styled.div`
-  max-width: 1120px;
-  margin: 0 auto;
-  padding: 40px 16px;
-  display: flex;
-  gap: 32px;
-`;
-
-const FilterSidebar = styled.aside`
-  width: 256px;
+const FilterSection = styled.aside`
+  width: 260px;
   flex-shrink: 0;
-  display: none;
-  @media (min-width: 1024px) {
-    display: block;
+  @media (max-width: 1024px) {
+    display: none;
   }
 `;
 
-const ProductGridSection = styled.section`
-  flex-grow: 1;
+const ProductGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 32px;
+`;
+
+const CategoryButton = styled.label`
+  display: flex;
+  align-items: center;
+  padding: 8px 0;
+  cursor: pointer;
+  font-size: 15px;
+  color: #1d1d1f;
+  transition: color 0.2s;
+
+  input {
+    margin-right: 12px;
+    width: 18px;
+    height: 18px;
+    accent-color: #0066cc;
+  }
+
+  &:hover {
+    color: #0066cc;
+  }
 `;
 
 const ProductListPage: React.FC = () => {
-  const [allProducts, setAllProducts] = useState<any[]>([]);
-  const [displayProducts, setDisplayProducts] = useState<any[]>([]);
+  const [products, setProducts] = useState<any[]>([]);
+  const [filteredProducts, setFilteredProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState(""); // 검색어 상태 추가
+  const [categories, setCategories] = useState<string[]>([]);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [sortBy, setSortBy] = useState("latest");
 
-  const [searchParams, setSearchParams] = useSearchParams();
-  const categoryParam = searchParams.get("category");
+  const navigate = useNavigate();
+  const location = useLocation();
 
-  const [selectedCategory, setSelectedCategory] = useState<string>(
-    categoryParam || "all"
-  );
-  const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
-
-  const allowedCategories = [
-    "smartphones",
-    "laptops",
-    "tablets",
-    "mobile-accessories",
-  ];
+  const queryParams = new URLSearchParams(location.search);
+  const searchQuery = queryParams.get("search") || "";
 
   useEffect(() => {
-    setLoading(true);
-    fetch("https://dummyjson.com/products?limit=100")
-      .then((res) => res.json())
-      .then((data) => {
-        const filtered = data.products.filter((p: any) =>
-          allowedCategories.includes(p.category)
-        );
-        setAllProducts(filtered);
+    const fetchProducts = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch("http://localhost:3500/products");
+        const data = await response.json();
+        const list = Array.isArray(data) ? data : data.products || [];
+
+        setProducts(list);
+
+        const uniqueCats = Array.from(
+          new Set(list.map((p: any) => p.category))
+        ).filter(Boolean) as string[];
+        setCategories(uniqueCats);
+      } catch (error) {
+        console.error("Fetch Error:", error);
+      } finally {
         setLoading(false);
-      })
-      .catch((err) => {
-        console.error("Failed to fetch products:", err);
-        setLoading(false);
-      });
+      }
+    };
+    fetchProducts();
   }, []);
 
   useEffect(() => {
-    if (categoryParam) {
-      setSelectedCategory(categoryParam);
-    } else {
-      setSelectedCategory("all");
-    }
-    setSelectedBrands([]);
-  }, [categoryParam]);
+    let result = [...products];
 
-  useEffect(() => {
-    let filtered = [...allProducts];
-
-    if (selectedCategory !== "all") {
-      filtered = filtered.filter((p) => p.category === selectedCategory);
-    }
-
-    if (selectedBrands.length > 0) {
-      filtered = filtered.filter((p) => selectedBrands.includes(p.brand));
-    }
-
-    if (searchTerm) {
-      const query = searchTerm.toLowerCase();
-      filtered = filtered.filter(
+    if (searchQuery) {
+      result = result.filter(
         (p) =>
-          p.title.toLowerCase().includes(query) ||
-          p.brand.toLowerCase().includes(query)
+          p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          (p.category &&
+            p.category.toLowerCase().includes(searchQuery.toLowerCase()))
       );
     }
 
-    setDisplayProducts(filtered);
-  }, [selectedCategory, selectedBrands, searchTerm, allProducts]);
-
-  const handleCategoryChange = (cat: string) => {
-    if (cat === "all") {
-      searchParams.delete("category");
-    } else {
-      searchParams.set("category", cat);
+    if (selectedCategories.length > 0) {
+      result = result.filter((p) => selectedCategories.includes(p.category));
     }
-    setSearchParams(searchParams);
-    setSelectedCategory(cat);
-  };
 
-  const handleBrandChange = (brand: string) => {
-    setSelectedBrands((prev) =>
-      prev.includes(brand) ? prev.filter((b) => b !== brand) : [...prev, brand]
+    if (sortBy === "low-price") result.sort((a, b) => a.price - b.price);
+    else if (sortBy === "high-price") result.sort((a, b) => b.price - a.price);
+    else if (sortBy === "name")
+      result.sort((a, b) => a.title.localeCompare(b.title));
+
+    setFilteredProducts(result);
+  }, [searchQuery, selectedCategories, sortBy, products]);
+
+  const toggleCategory = (cat: string) => {
+    setSelectedCategories((prev) =>
+      prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat]
     );
   };
 
-  const availableBrands = Array.from(
-    new Set(allProducts.map((p) => p.brand))
-  ).sort();
+  const getProductImage = (item: any) => {
+    if (item.images)
+      return Array.isArray(item.images) ? item.images[0] : item.images;
+    return item.image || "https://placehold.co/400x400?text=No+Image";
+  };
+
+  if (loading)
+    return <div className="py-40 text-center font-bold">Loading tech...</div>;
 
   return (
-    <PageContainer>
-      <FilterSidebar>
-        <div className="mb-10">
-          <h3 className="font-bold text-lg mb-4 border-b pb-2">Category</h3>
-          <div className="flex flex-col gap-3">
-            <button
-              onClick={() => handleCategoryChange("all")}
-              className={`text-left text-sm ${
-                selectedCategory === "all"
-                  ? "font-bold text-black"
-                  : "text-[#989898]"
-              }`}
+    <div className="max-w-[1280px] mx-auto px-6 py-16">
+      <div className="mb-12">
+        <h1 className="text-4xl font-black mb-4">
+          {searchQuery ? `Results for "${searchQuery}"` : "All Products"}
+        </h1>
+        <p className="text-gray-500 font-medium">
+          {filteredProducts.length} items available
+        </p>
+      </div>
+
+      <div className="flex gap-12">
+        <FilterSection>
+          <div className="mb-10">
+            <h3 className="flex items-center gap-2 font-bold text-lg mb-6">
+              <FunnelIcon className="w-5 h-5" /> Filter by Category
+            </h3>
+            <div className="flex flex-col gap-1">
+              {categories.map((cat) => (
+                <CategoryButton key={cat}>
+                  <input
+                    type="checkbox"
+                    checked={selectedCategories.includes(cat)}
+                    onChange={() => toggleCategory(cat)}
+                  />
+                  {cat}
+                </CategoryButton>
+              ))}
+            </div>
+          </div>
+
+          <div className="pt-8 border-t">
+            <h3 className="flex items-center gap-2 font-bold text-lg mb-6">
+              <ArrowsUpDownIcon className="w-5 h-5" /> Sort by
+            </h3>
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="w-full bg-[#F5F5F7] border-none rounded-xl p-4 font-medium outline-none focus:ring-2 focus:ring-blue-500"
             >
-              All Products
-            </button>
-            {allowedCategories.map((cat) => (
+              <option value="latest">Latest Items</option>
+              <option value="low-price">Price: Low to High</option>
+              <option value="high-price">Price: High to Low</option>
+              <option value="name">Product Name (A-Z)</option>
+            </select>
+          </div>
+        </FilterSection>
+
+        <div className="flex-1">
+          {filteredProducts.length > 0 ? (
+            <ProductGrid>
+              {filteredProducts.map((product) => (
+                <div
+                  key={product._id}
+                  onClick={() => navigate(`/product/${product._id}`)}
+                  className="group cursor-pointer bg-white rounded-[2.5rem] p-6 transition-all hover:shadow-2xl hover:shadow-gray-100 border border-transparent hover:border-gray-100"
+                >
+                  <div className="aspect-square bg-[#F5F5F7] rounded-[2rem] mb-6 flex items-center justify-center p-8 overflow-hidden">
+                    <img
+                      src={getProductImage(product)}
+                      alt={product.title}
+                      className="max-h-full object-contain transition-transform duration-500 group-hover:scale-110"
+                    />
+                  </div>
+                  <div>
+                    <span className="text-xs font-bold text-blue-600 uppercase tracking-widest mb-2 block">
+                      {product.category}
+                    </span>
+                    <h2 className="text-xl font-bold text-black mb-2 line-clamp-1 group-hover:text-blue-600 transition-colors">
+                      {product.title}
+                    </h2>
+                    <p className="text-2xl font-black text-black">
+                      ${product.price.toLocaleString()}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </ProductGrid>
+          ) : (
+            <div className="py-24 text-center">
+              <div className="bg-[#F5F5F7] w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
+                <MagnifyingGlassIcon className="w-10 h-10 text-gray-300" />
+              </div>
+              <h3 className="text-2xl font-bold mb-2">No results found.</h3>
+              <p className="text-gray-500 mb-8">
+                Try using different keywords or filters.
+              </p>
               <button
-                key={cat}
-                onClick={() => handleCategoryChange(cat)}
-                className={`text-left text-sm capitalize ${
-                  selectedCategory === cat
-                    ? "font-bold text-black"
-                    : "text-[#989898]"
-                }`}
+                onClick={() => {
+                  navigate("/products");
+                  setSelectedCategories([]);
+                }}
+                className="bg-black text-white px-8 py-3 rounded-full font-bold hover:bg-gray-800 transition"
               >
-                {cat.replace("-", " ")}
+                Clear all filters
               </button>
-            ))}
-          </div>
+            </div>
+          )}
         </div>
-
-        <div>
-          <h3 className="font-bold text-lg mb-4 border-b pb-2">Brand</h3>
-          <div className="max-h-[400px] overflow-y-auto pr-2 space-y-3">
-            {availableBrands.map((brand) => (
-              <label
-                key={brand}
-                className="flex items-center gap-3 cursor-pointer group"
-              >
-                <input
-                  type="checkbox"
-                  className="w-4 h-4 accent-black cursor-pointer"
-                  checked={selectedBrands.includes(brand)}
-                  onChange={() => handleBrandChange(brand)}
-                />
-                <span className="text-sm text-[#989898] group-hover:text-black transition-colors">
-                  {brand}
-                </span>
-              </label>
-            ))}
-          </div>
-        </div>
-      </FilterSidebar>
-
-      <ProductGridSection>
-        <div className="mb-8 space-y-6">
-          <div className="relative max-w-md">
-            <span className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-              <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
-            </span>
-            <input
-              type="text"
-              placeholder="Search products or brands..."
-              className="block w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl focus:bg-white focus:ring-2 focus:ring-black focus:border-transparent transition-all outline-none text-sm"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-
-          <div className="flex justify-between items-center">
-            <p className="text-[#8B8B8B] text-sm">
-              Selected Products:{" "}
-              <span className="text-black font-bold">
-                {displayProducts.length}
-              </span>
-            </p>
-          </div>
-        </div>
-
-        {loading ? (
-          <div className="flex justify-center items-center py-40">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black"></div>
-          </div>
-        ) : displayProducts.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-8">
-            {displayProducts.map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-40 bg-gray-50 rounded-[32px] border border-dashed border-gray-200">
-            <p className="text-gray-500 font-medium">
-              No products found for this filter.
-            </p>
-            <button
-              onClick={() => {
-                setSearchTerm("");
-                setSelectedBrands([]);
-              }}
-              className="mt-4 text-sm font-bold underline"
-            >
-              Reset Filters
-            </button>
-          </div>
-        )}
-      </ProductGridSection>
-    </PageContainer>
+      </div>
+    </div>
   );
 };
 
