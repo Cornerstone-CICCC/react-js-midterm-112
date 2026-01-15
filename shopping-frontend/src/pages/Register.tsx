@@ -5,8 +5,9 @@ const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
-    username: "",
-    email: "",
+    firstname: "",
+    lastname: "",
+    loginId: "",
     password: "",
   });
 
@@ -17,21 +18,28 @@ const RegisterPage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      localStorage.setItem(
-        `user_${formData.email}`,
-        JSON.stringify({
-          id: Date.now().toString(),
-          username: formData.username,
-          email: formData.email,
-          password: formData.password,
-        })
-      );
+      const response = await fetch("http://localhost:3500/users/signup", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
 
-      console.log("Registration data:", formData);
-      alert("Registration successful! Please login with your email.");
-      navigate("/login");
+      if (response.ok) {
+        alert("Registration successful! Please login.");
+        navigate("/login");
+      } else {
+        const errorData = await response.json();
+        alert(
+          `Registration failed: ${errorData.message || "Please check your details."}`
+        );
+      }
     } catch (error) {
-      alert("Registration failed. Please try again.");
+      console.error("Connection error:", error);
+      alert(
+        "Could not connect to the server. Ensure the backend is on 3500 and the frontend is running on port 5173."
+      );
     }
   };
 
@@ -43,24 +51,39 @@ const RegisterPage: React.FC = () => {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-5">
-        <div className="space-y-2">
-          <label className="text-sm font-semibold ml-1">Username</label>
-          <input
-            type="text"
-            name="username"
-            placeholder="Display Name (e.g. tech_master)"
-            required
-            className="w-full border border-gray-200 p-4 rounded-2xl outline-none focus:border-black transition"
-            onChange={handleChange}
-          />
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <label className="text-sm font-semibold ml-1">First Name</label>
+            <input
+              type="text"
+              name="firstname"
+              placeholder="John"
+              required
+              className="w-full border border-gray-200 p-4 rounded-2xl outline-none focus:border-black transition"
+              onChange={handleChange}
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-semibold ml-1">Last Name</label>
+            <input
+              type="text"
+              name="lastname"
+              placeholder="Doe"
+              required
+              className="w-full border border-gray-200 p-4 rounded-2xl outline-none focus:border-black transition"
+              onChange={handleChange}
+            />
+          </div>
         </div>
 
         <div className="space-y-2">
-          <label className="text-sm font-semibold ml-1">Email Address</label>
+          <label className="text-sm font-semibold ml-1">
+            Login ID (Username)
+          </label>
           <input
-            type="email"
-            name="email"
-            placeholder="example@email.com"
+            type="text"
+            name="loginId"
+            placeholder="tech_master"
             required
             className="w-full border border-gray-200 p-4 rounded-2xl outline-none focus:border-black transition"
             onChange={handleChange}

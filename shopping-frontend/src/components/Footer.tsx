@@ -1,7 +1,6 @@
 import React from "react";
 import styled from "styled-components";
 
-// SNS 아이콘 버튼 스타일 (심플하게)
 const SocialIcon = styled.a`
   color: #ffffff;
   font-size: 20px;

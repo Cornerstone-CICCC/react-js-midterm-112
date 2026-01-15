@@ -3,18 +3,16 @@ import { Link, NavLink, useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import {
   MagnifyingGlassIcon,
-  HeartIcon,
   ShoppingCartIcon,
   UserIcon,
-  XMarkIcon,
   ArrowRightOnRectangleIcon,
+  PlusIcon,
+  MinusIcon,
 } from "@heroicons/react/24/outline";
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
-import { useWishlist } from "../context/WishlistContext";
 
 const SearchContainer = styled.form`
-  // div에서 form으로 변경하여 submit 이벤트 처리
   background-color: #f5f5f5;
   border-radius: 8px;
   display: flex;
@@ -57,7 +55,7 @@ const Badge = styled.span`
   position: absolute;
   top: -2px;
   right: -4px;
-  background-color: ${(props: { color?: string }) => props.color || "#ef4444"};
+  background-color: #3b82f6;
   color: white;
   font-size: 10px;
   font-weight: bold;
@@ -68,18 +66,21 @@ const Badge = styled.span`
   align-items: center;
   justify-content: center;
   border: 2px solid white;
+  z-index: 10;
 `;
 
 const Header: React.FC = () => {
-  const { cartItems, totalCount, totalPrice, addToCart, removeFromCart } =
-    useCart();
+  const { cartItems, removeFromCart, updateQuantity } = useCart();
   const { user, logout } = useAuth();
-  const { wishlistItems } = useWishlist();
   const [isCartOpen, setIsCartOpen] = useState(false);
-
-  // 검색을 위한 상태 추가
   const [keyword, setKeyword] = useState("");
   const navigate = useNavigate();
+
+  const totalCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);
+  const totalPrice = cartItems.reduce(
+    (acc, item) => acc + (item.price || 0) * item.quantity,
+    0
+  );
 
   const handleLogout = () => {
     if (window.confirm("Are you sure you want to logout?")) {
@@ -88,13 +89,11 @@ const Header: React.FC = () => {
     }
   };
 
-  // 검색 실행 함수
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (keyword.trim()) {
-      // 엔터를 치면 /products 페이지로 검색어를 들고 이동합니다.
       navigate(`/products?search=${encodeURIComponent(keyword)}`);
-      setKeyword(""); // 입력창 초기화
+      setKeyword("");
     }
   };
 
@@ -102,6 +101,12 @@ const Header: React.FC = () => {
     `text-[16px] font-medium transition-colors ${
       isActive ? "text-black font-bold" : "text-[#989898] hover:text-black"
     }`;
+
+  const getProductImage = (item: any) => {
+    if (item.images)
+      return Array.isArray(item.images) ? item.images[0] : item.images;
+    return item.image || "https://placehold.co/150x150?text=No+Image";
+  };
 
   return (
     <header className="w-full bg-white border-b border-gray-100 h-[88px] flex items-center sticky top-0 z-50">
@@ -122,7 +127,6 @@ const Header: React.FC = () => {
           </NavLink>
         </nav>
 
-        {/* Search 영역: onSubmit 연결 및 input value/onChange 연결 */}
         <SearchContainer
           className="hidden md:flex mx-4"
           onSubmit={handleSearch}
@@ -130,22 +134,13 @@ const Header: React.FC = () => {
           <MagnifyingGlassIcon className="w-5 h-5 text-gray-400" />
           <input
             type="text"
-            placeholder="Search"
+            placeholder="Search products..."
             value={keyword}
             onChange={(e) => setKeyword(e.target.value)}
           />
         </SearchContainer>
 
-        <div className="flex items-center gap-5">
-          <Link to="/wishlist" className="hover:opacity-50 transition relative">
-            <IconButton aria-label="Favorites">
-              <HeartIcon />
-              {wishlistItems.length > 0 && (
-                <Badge color="#ef4444">{wishlistItems.length}</Badge>
-              )}
-            </IconButton>
-          </Link>
-
+        <div className="flex items-center gap-2">
           <div
             className="relative h-[88px] flex items-center"
             onMouseEnter={() => setIsCartOpen(true)}
@@ -154,14 +149,15 @@ const Header: React.FC = () => {
             <Link to="/cart" className="hover:opacity-50 transition relative">
               <IconButton aria-label="Cart">
                 <ShoppingCartIcon />
-                {totalCount > 0 && <Badge color="#3b82f6">{totalCount}</Badge>}
+                {totalCount > 0 && <Badge>{totalCount}</Badge>}
               </IconButton>
             </Link>
 
             {isCartOpen && (
               <div className="absolute right-0 top-[78px] w-[350px] bg-white border border-gray-100 shadow-2xl rounded-2xl p-5 z-[100]">
-                <div className="absolute -top-4 left-0 w-full h-4 bg-transparent" />
-                <h3 className="font-bold text-lg mb-4">Cart Summary</h3>
+                <h3 className="font-bold text-lg mb-4 text-black">
+                  Cart Summary
+                </h3>
                 {cartItems.length === 0 ? (
                   <div className="py-8 text-center text-gray-400 text-sm">
                     Your cart is empty.
@@ -171,45 +167,60 @@ const Header: React.FC = () => {
                     <div className="max-h-[320px] overflow-y-auto space-y-4 mb-5 pr-1">
                       {cartItems.map((item) => (
                         <div
-                          key={item.id}
+                          key={item.productId}
                           className="flex gap-3 items-center border-b border-gray-50 pb-3 last:border-0"
                         >
                           <img
-                            src={item.thumbnail}
+                            src={getProductImage(item)}
                             alt={item.title}
                             className="w-14 h-14 object-contain bg-gray-50 rounded-lg"
+                            onError={(e) =>
+                              (e.currentTarget.src =
+                                "https://placehold.co/150x150?text=No+Image")
+                            }
                           />
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-bold text-black truncate">
                               {item.title}
                             </p>
-                            <p className="text-xs text-gray-500 font-medium">
-                              ${item.price.toLocaleString()}
+                            <p className="text-xs text-gray-500">
+                              ${(item.price || 0).toLocaleString()}
                             </p>
                           </div>
-                          <div className="flex items-center border rounded-lg bg-white overflow-hidden shrink-0">
+
+                          <div className="flex items-center border border-gray-100 rounded-lg bg-white overflow-hidden shrink-0 shadow-sm">
                             <button
-                              onClick={() => removeFromCart(item.id, true)}
-                              className="px-2 py-1 hover:bg-gray-100 transition text-sm"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                if (item.quantity > 1) {
+                                  updateQuantity(
+                                    item.productId,
+                                    item.quantity - 1
+                                  );
+                                } else {
+                                  removeFromCart(item.productId);
+                                }
+                              }}
+                              className="px-2 py-1 hover:bg-gray-100 transition-colors text-gray-600"
                             >
-                              -
+                              <MinusIcon className="w-3 h-3" />
                             </button>
-                            <span className="px-2 text-xs font-bold min-w-[20px] text-center">
+                            <span className="px-2 text-xs font-bold text-black min-w-[24px] text-center">
                               {item.quantity}
                             </span>
                             <button
-                              onClick={() => addToCart(item, 1)}
-                              className="px-2 py-1 hover:bg-gray-100 transition text-sm"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                updateQuantity(
+                                  item.productId,
+                                  item.quantity + 1
+                                );
+                              }}
+                              className="px-2 py-1 hover:bg-gray-100 transition-colors text-gray-600"
                             >
-                              +
+                              <PlusIcon className="w-3 h-3" />
                             </button>
                           </div>
-                          <button
-                            onClick={() => removeFromCart(item.id)}
-                            className="text-gray-300 hover:text-red-500 transition shrink-0"
-                          >
-                            <XMarkIcon className="w-5 h-5" />
-                          </button>
                         </div>
                       ))}
                     </div>
@@ -224,10 +235,10 @@ const Header: React.FC = () => {
                       </div>
                       <Link
                         to="/cart"
-                        className="block w-full bg-black text-white text-center py-4 rounded-xl font-bold hover:bg-gray-800 transition"
+                        className="block w-full bg-blue-600 text-white text-center py-4 rounded-xl font-bold hover:bg-blue-700 transition shadow-lg shadow-blue-100"
                         onClick={() => setIsCartOpen(false)}
                       >
-                        Go to Cart
+                        Review Bag
                       </Link>
                     </div>
                   </>
@@ -237,15 +248,18 @@ const Header: React.FC = () => {
           </div>
 
           {user ? (
-            <div className="flex items-center gap-3 border-l pl-5">
-              <div className="hidden sm:flex flex-col items-end leading-tight">
-                <span className="text-[10px] text-gray-400 font-bold uppercase tracking-tight">
-                  Welcome back,
+            <div className="flex items-center gap-3 border-l pl-5 ml-2">
+              <Link
+                to="/mypage"
+                className="flex flex-col items-end leading-tight hover:opacity-70 group"
+              >
+                <span className="text-[10px] text-gray-400 font-bold uppercase">
+                  Welcome,
                 </span>
-                <span className="text-[14px] font-bold text-black">
-                  {user.username}
+                <span className="text-[14px] font-bold text-black group-hover:text-blue-600">
+                  {user.loginId}
                 </span>
-              </div>
+              </Link>
               <button
                 onClick={handleLogout}
                 className="p-2 hover:bg-red-50 rounded-full transition text-gray-400 hover:text-red-500"
@@ -257,7 +271,7 @@ const Header: React.FC = () => {
           ) : (
             <Link
               to="/login"
-              className="hover:opacity-50 transition border-l pl-5"
+              className="hover:opacity-50 transition border-l pl-5 ml-2"
             >
               <IconButton aria-label="User profile">
                 <UserIcon />

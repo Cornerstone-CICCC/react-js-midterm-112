@@ -7,7 +7,7 @@ const LoginPage: React.FC = () => {
   const { login } = useAuth();
 
   const [formData, setFormData] = useState({
-    email: "",
+    loginId: "",
     password: "",
   });
 
@@ -15,54 +15,66 @@ const LoginPage: React.FC = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    try {
+      const response = await fetch("http://localhost:3500/users/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
 
-    const savedUserData = localStorage.getItem(`user_${formData.email}`);
+      const data = await response.json();
 
-    if (savedUserData) {
-      const user = JSON.parse(savedUserData);
+      if (response.ok) {
+        console.log("Login Success:", data);
 
-      if (user.password === formData.password) {
-        login({
-          id: user.id,
-          username: user.username,
-          email: user.email,
-        });
+        const userData = data.user || data;
+        login(userData);
 
-        alert(`Welcome back, ${user.username}!`);
+        alert("Login successful!");
         navigate("/");
       } else {
-        alert("Invalid password. Please try again.");
+        alert(`Login failed: ${data.message || "Invalid ID or Password"}`);
       }
-    } else {
-      alert("No account found with this email.");
+    } catch (error) {
+      console.error("Login error:", error);
+      alert("Server connection error. Please try again later.");
     }
   };
 
   return (
-    <div className="max-w-[480px] mx-auto py-20 px-6">
-      <div className="text-center mb-10">
+    <div className="max-w-[480px] mx-auto py-24 px-6">
+      <div className="text-center mb-12">
         <h1 className="text-4xl font-bold mb-3">Login</h1>
         <p className="text-gray-500">Welcome back to TechMarket</p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-5">
         <div className="space-y-2">
-          <label className="text-sm font-semibold ml-1">Email Address</label>
+          <label className="text-sm font-semibold ml-1">Login ID</label>
           <input
-            type="email"
-            name="email"
-            placeholder="example@email.com"
+            type="text"
+            name="loginId"
+            placeholder="Your ID"
             required
             className="w-full border border-gray-200 p-4 rounded-2xl outline-none focus:border-black transition"
             onChange={handleChange}
-            value={formData.email}
           />
         </div>
 
         <div className="space-y-2">
-          <label className="text-sm font-semibold ml-1">Password</label>
+          <div className="flex justify-between items-center px-1">
+            <label className="text-sm font-semibold">Password</label>
+            <Link
+              to="/forgot-password"
+              className="text-xs text-gray-400 hover:text-black"
+            >
+              Forgot password?
+            </Link>
+          </div>
           <input
             type="password"
             name="password"
@@ -70,7 +82,6 @@ const LoginPage: React.FC = () => {
             required
             className="w-full border border-gray-200 p-4 rounded-2xl outline-none focus:border-black transition"
             onChange={handleChange}
-            value={formData.password}
           />
         </div>
 
@@ -82,16 +93,14 @@ const LoginPage: React.FC = () => {
         </button>
       </form>
 
-      <div className="mt-8 space-y-3 text-center">
-        <p className="text-gray-500">
-          Don't have an account?{" "}
-          <Link
-            to="/register"
-            className="text-black font-bold underline hover:text-blue-600"
-          >
-            Create account
-          </Link>
-        </p>
+      <div className="mt-8 text-center text-gray-500">
+        Don't have an account?{" "}
+        <Link
+          to="/register"
+          className="text-black font-bold underline hover:text-blue-600"
+        >
+          Create one here
+        </Link>
       </div>
     </div>
   );
