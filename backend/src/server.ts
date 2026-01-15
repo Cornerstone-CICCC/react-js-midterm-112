@@ -5,6 +5,7 @@ import cookieSession from "cookie-session";
 import userRouter from "./routes/user.routes";
 import dotenv from "dotenv";
 import productRouter from "./routes/product.route";
+import cartRouter from "./routes/cart.route";
 dotenv.config();
 
 // Create Server
@@ -32,6 +33,7 @@ app.use(express.json());
 //Routes
 app.use("/users", userRouter);
 app.use("/products", productRouter);
+app.use("/carts", cartRouter);
 app.get("/", (req: Request, res: Response) => {
   res.status(200).send("Server is running");
 });
