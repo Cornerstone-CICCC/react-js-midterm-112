@@ -2,10 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import styled, { keyframes } from "styled-components";
 import { useCart } from "../context/CartContext";
-import { useWishlist } from "../context/WishlistContext";
 import { useAuth } from "../context/AuthContext";
-import { HeartIcon as HeartIconOutline } from "@heroicons/react/24/outline";
-import { HeartIcon as HeartIconSolid } from "@heroicons/react/24/solid";
 
 const fadeInOut = keyframes`
   0% { opacity: 0; transform: translate(-50%, -20px); }
@@ -31,7 +28,6 @@ const ProductDetail: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { addToCart } = useCart();
-  const { toggleWishlist, isInWishlist } = useWishlist();
 
   const [product, setProduct] = useState<any>(null);
   const [quantity, setQuantity] = useState(1);
@@ -64,33 +60,6 @@ const ProductDetail: React.FC = () => {
     setShowToast(true);
     setTimeout(() => setShowToast(false), 2500);
   };
-
-  const handleWishlist = () => {
-    if (!user) {
-      if (
-        window.confirm(
-          "Login is required for this feature. Would you like to go to the login page?"
-        )
-      ) {
-        navigate("/login");
-      }
-      return;
-    }
-
-    toggleWishlist({
-      id: product.id,
-      title: product.title,
-      price: product.price,
-      thumbnail: product.thumbnail,
-    });
-
-    const isAdding = !isInWishlist(product.id);
-    setToastMsg(isAdding ? "Added to Wishlist!" : "Removed from Wishlist");
-    setShowToast(true);
-    setTimeout(() => setShowToast(false), 2500);
-  };
-
-  const isFavorite = isInWishlist(product.id);
 
   return (
     <div className="max-w-[1120px] mx-auto px-4 py-16">
@@ -162,24 +131,8 @@ const ProductDetail: React.FC = () => {
 
             <div className="flex gap-4">
               <button
-                onClick={handleWishlist}
-                className={`flex-1 border-2 py-4 rounded-xl font-bold flex items-center justify-center gap-2 transition ${
-                  isFavorite
-                    ? "border-red-500 bg-red-50 text-red-500"
-                    : "border-black bg-white text-black hover:bg-gray-50"
-                }`}
-              >
-                {isFavorite ? (
-                  <HeartIconSolid className="w-6 h-6" />
-                ) : (
-                  <HeartIconOutline className="w-6 h-6" />
-                )}
-                Wishlist
-              </button>
-
-              <button
                 onClick={handleAddCart}
-                className="flex-[2] bg-black text-white py-4 rounded-xl font-bold hover:bg-gray-800 transition"
+                className="w-full bg-black text-white py-5 rounded-xl font-bold hover:bg-gray-800 transition text-lg shadow-lg"
               >
                 Add to Cart
               </button>

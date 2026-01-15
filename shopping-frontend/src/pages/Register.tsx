@@ -18,7 +18,6 @@ const RegisterPage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      // ✅ 수정된 부분: 백엔드 server.ts의 "/users"와 userRouter의 "/signup"을 조합
       const response = await fetch("http://localhost:3500/users/signup", {
         method: "POST",
         headers: {
@@ -38,7 +37,6 @@ const RegisterPage: React.FC = () => {
       }
     } catch (error) {
       console.error("Connection error:", error);
-      // 포트가 5173인지 확인하라는 안내 추가
       alert(
         "Could not connect to the server. Ensure the backend is on 3500 and the frontend is running on port 5173."
       );

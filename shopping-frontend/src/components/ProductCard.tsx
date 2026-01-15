@@ -11,7 +11,7 @@ const Card = styled.div`
   align-items: center;
   position: relative;
   transition: all 0.3s ease;
-  cursor: pointer; // 카드 전체에 커서 포인터 추가
+  cursor: pointer;
 
   &:hover {
     background-color: #ffffff;

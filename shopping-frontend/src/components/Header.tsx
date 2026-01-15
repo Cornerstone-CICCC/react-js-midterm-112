@@ -3,7 +3,6 @@ import { Link, NavLink, useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import {
   MagnifyingGlassIcon,
-  HeartIcon,
   ShoppingCartIcon,
   UserIcon,
   XMarkIcon,
@@ -11,7 +10,6 @@ import {
 } from "@heroicons/react/24/outline";
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
-import { useWishlist } from "../context/WishlistContext";
 
 const SearchContainer = styled.form`
   background-color: #f5f5f5;
@@ -73,7 +71,6 @@ const Header: React.FC = () => {
   const { cartItems, totalCount, totalPrice, addToCart, removeFromCart } =
     useCart();
   const { user, logout } = useAuth();
-  const { wishlistItems } = useWishlist();
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [keyword, setKeyword] = useState("");
   const navigate = useNavigate();
@@ -130,18 +127,7 @@ const Header: React.FC = () => {
           />
         </SearchContainer>
 
-        <div className="flex items-center gap-5">
-          {/* Wishlist */}
-          <Link to="/wishlist" className="hover:opacity-50 transition relative">
-            <IconButton aria-label="Favorites">
-              <HeartIcon />
-              {wishlistItems.length > 0 && (
-                <Badge color="#ef4444">{wishlistItems.length}</Badge>
-              )}
-            </IconButton>
-          </Link>
-
-          {/* Cart Dropdown Area */}
+        <div className="flex items-center gap-2">
           <div
             className="relative h-[88px] flex items-center"
             onMouseEnter={() => setIsCartOpen(true)}
@@ -186,7 +172,7 @@ const Header: React.FC = () => {
                           <div className="flex items-center border rounded-lg bg-white overflow-hidden shrink-0">
                             <button
                               onClick={() => removeFromCart(item.id, true)}
-                              className="px-2 py-1 hover:bg-gray-100 transition text-sm"
+                              className="px-2 py-1 hover:bg-gray-100"
                             >
                               -
                             </button>
@@ -195,14 +181,14 @@ const Header: React.FC = () => {
                             </span>
                             <button
                               onClick={() => addToCart(item, 1)}
-                              className="px-2 py-1 hover:bg-gray-100 transition text-sm"
+                              className="px-2 py-1 hover:bg-gray-100"
                             >
                               +
                             </button>
                           </div>
                           <button
                             onClick={() => removeFromCart(item.id)}
-                            className="text-gray-300 hover:text-red-500 transition shrink-0"
+                            className="text-gray-300 hover:text-red-500"
                           >
                             <XMarkIcon className="w-5 h-5" />
                           </button>
@@ -220,7 +206,7 @@ const Header: React.FC = () => {
                       </div>
                       <Link
                         to="/cart"
-                        className="block w-full bg-black text-white text-center py-4 rounded-xl font-bold hover:bg-gray-800 transition"
+                        className="block w-full bg-black text-white text-center py-4 rounded-xl font-bold"
                         onClick={() => setIsCartOpen(false)}
                       >
                         Go to Cart
@@ -232,10 +218,8 @@ const Header: React.FC = () => {
             )}
           </div>
 
-          {/* User Section: 로그인 여부에 따른 렌더링 수정 */}
           {user ? (
-            <div className="flex items-center gap-3 border-l pl-5">
-              {/* 마이페이지 링크로 loginId 표시 */}
+            <div className="flex items-center gap-3 border-l pl-5 ml-2">
               <Link
                 to="/mypage"
                 className="flex flex-col items-end leading-tight hover:opacity-70 transition group"
@@ -244,12 +228,12 @@ const Header: React.FC = () => {
                   Welcome back,
                 </span>
                 <span className="text-[14px] font-bold text-black group-hover:text-blue-600 transition">
-                  {user.loginId} 님
+                  {user.loginId}
                 </span>
               </Link>
               <button
                 onClick={handleLogout}
-                className="p-2 hover:bg-red-50 rounded-full transition text-gray-400 hover:text-red-500"
+                className="p-2 hover:bg-red-50 rounded-full transition text-gray-400 hover:text-red-500 shadow-sm"
                 title="Logout"
               >
                 <ArrowRightOnRectangleIcon className="w-6 h-6" />
@@ -258,7 +242,7 @@ const Header: React.FC = () => {
           ) : (
             <Link
               to="/login"
-              className="hover:opacity-50 transition border-l pl-5"
+              className="hover:opacity-50 transition border-l pl-5 ml-2"
             >
               <IconButton aria-label="User profile">
                 <UserIcon />

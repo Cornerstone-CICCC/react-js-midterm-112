@@ -18,7 +18,6 @@ const LoginPage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      // 1. 백엔드 주소 확인 (복수형 /users/login)
       const response = await fetch("http://localhost:3500/users/login", {
         method: "POST",
         headers: {
@@ -30,13 +29,9 @@ const LoginPage: React.FC = () => {
       const data = await response.json();
 
       if (response.ok) {
-        // 🚨 [매우 중요] 콘솔에서 데이터 구조를 꼭 확인하세요!
-        console.log("Login Full Response:", data);
+        console.log("Login Success:", data);
 
-        // 만약 백엔드가 { user: { _id, loginId... }, token: "..." } 형태로 준다면
-        // data.user를 전달해야 Header에서 user.loginId를 읽을 수 있습니다.
         const userData = data.user || data;
-
         login(userData);
 
         alert("Login successful!");
@@ -46,7 +41,7 @@ const LoginPage: React.FC = () => {
       }
     } catch (error) {
       console.error("Login error:", error);
-      alert("Server connection error. Ensure your frontend is on port 5173.");
+      alert("Server connection error. Please try again later.");
     }
   };
 
@@ -98,7 +93,7 @@ const LoginPage: React.FC = () => {
         </button>
       </form>
 
-      <p className="mt-8 text-center text-gray-500">
+      <div className="mt-8 text-center text-gray-500">
         Don't have an account?{" "}
         <Link
           to="/register"
@@ -106,7 +101,7 @@ const LoginPage: React.FC = () => {
         >
           Create one here
         </Link>
-      </p>
+      </div>
     </div>
   );
 };

@@ -72,7 +72,6 @@ const ProductListPage: React.FC = () => {
     setSelectedBrands([]);
   }, [categoryParam]);
 
-  // 필터링 통합 로직 (카테고리 + 브랜드 + 검색어)
   useEffect(() => {
     let filtered = [...allProducts];
 
@@ -125,7 +124,9 @@ const ProductListPage: React.FC = () => {
             <button
               onClick={() => handleCategoryChange("all")}
               className={`text-left text-sm ${
-                selectedCategory === "all" ? "font-bold text-black" : "text-[#989898]"
+                selectedCategory === "all"
+                  ? "font-bold text-black"
+                  : "text-[#989898]"
               }`}
             >
               All Products
@@ -135,7 +136,9 @@ const ProductListPage: React.FC = () => {
                 key={cat}
                 onClick={() => handleCategoryChange(cat)}
                 className={`text-left text-sm capitalize ${
-                  selectedCategory === cat ? "font-bold text-black" : "text-[#989898]"
+                  selectedCategory === cat
+                    ? "font-bold text-black"
+                    : "text-[#989898]"
                 }`}
               >
                 {cat.replace("-", " ")}
@@ -168,7 +171,6 @@ const ProductListPage: React.FC = () => {
       </FilterSidebar>
 
       <ProductGridSection>
-        {/* 검색창 UI 영역 */}
         <div className="mb-8 space-y-6">
           <div className="relative max-w-md">
             <span className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
@@ -208,8 +210,11 @@ const ProductListPage: React.FC = () => {
             <p className="text-gray-500 font-medium">
               No products found for this filter.
             </p>
-            <button 
-              onClick={() => {setSearchTerm(""); setSelectedBrands([]);}}
+            <button
+              onClick={() => {
+                setSearchTerm("");
+                setSelectedBrands([]);
+              }}
               className="mt-4 text-sm font-bold underline"
             >
               Reset Filters
