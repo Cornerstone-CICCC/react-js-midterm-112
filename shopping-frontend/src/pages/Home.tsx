@@ -10,34 +10,37 @@ const Home: React.FC = () => {
   const [activeTab, setActiveTab] = useState("New Arrival");
   const [loading, setLoading] = useState(true);
 
-  const allowedCategories = [
-    "laptops",
-    "mobile-accessories",
-    "smartphones",
-    "tablets",
-  ];
-
   useEffect(() => {
-    fetch("https://dummyjson.com/products?limit=100")
-      .then((res) => res.json())
-      .then((data) => {
-        const filtered = data.products.filter((p: any) =>
-          allowedCategories.includes(p.category)
-        );
-        setAllProducts(filtered);
+    const fetchDBProducts = async () => {
+      try {
+        setLoading(true);
+        const res = await fetch("http://localhost:3500/products");
+        const data = await res.json();
+
+        const list = Array.isArray(data) ? data : data.products || [];
+
+        setAllProducts(list);
+      } catch (err) {
+        console.error("DB Fetch Error:", err);
+      } finally {
         setLoading(false);
-      });
+      }
+    };
+
+    fetchDBProducts();
   }, []);
 
   useEffect(() => {
+    if (allProducts.length === 0) return;
+
     let sorted = [...allProducts];
 
     if (activeTab === "Best Seller") {
-      sorted.sort((a, b) => b.rating - a.rating);
+      sorted.sort((a, b) => (b.rating || 0) - (a.rating || 0));
     } else if (activeTab === "Featured Products") {
-      sorted.sort((a, b) => b.discountPercentage - a.discountPercentage);
+      sorted.sort((a, b) => (b.price || 0) - (a.price || 0));
     } else {
-      sorted.sort((a, b) => b.id - a.id);
+      sorted.sort((a, b) => b._id.localeCompare(a._id));
     }
 
     setDisplayProducts(sorted.slice(0, 8));
@@ -69,12 +72,20 @@ const Home: React.FC = () => {
         </div>
 
         {loading ? (
-          <div className="text-center py-20">Loading...</div>
+          <div className="text-center py-20 text-gray-400 font-bold italic">
+            Loading Tech Items...
+          </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {displayProducts.map((product) => (
-              <ProductCard key={product.id} product={product} />
+              <ProductCard key={product._id} product={product} />
             ))}
+          </div>
+        )}
+
+        {!loading && displayProducts.length === 0 && (
+          <div className="text-center py-20 text-gray-500">
+            No products found in DB.
           </div>
         )}
       </section>

@@ -29,14 +29,12 @@ const CategoryButton = styled.label`
   font-size: 15px;
   color: #1d1d1f;
   transition: color 0.2s;
-
   input {
     margin-right: 12px;
     width: 18px;
     height: 18px;
     accent-color: #0066cc;
   }
-
   &:hover {
     color: #0066cc;
   }
@@ -52,9 +50,10 @@ const ProductListPage: React.FC = () => {
 
   const navigate = useNavigate();
   const location = useLocation();
-
   const queryParams = new URLSearchParams(location.search);
   const searchQuery = queryParams.get("search") || "";
+  const categoryFilter = queryParams.get("category");
+  const [localSearch, setLocalSearch] = useState(searchQuery);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -63,7 +62,6 @@ const ProductListPage: React.FC = () => {
         const response = await fetch("http://localhost:3500/products");
         const data = await response.json();
         const list = Array.isArray(data) ? data : data.products || [];
-
         setProducts(list);
 
         const uniqueCats = Array.from(
@@ -80,8 +78,13 @@ const ProductListPage: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    let result = [...products];
+    if (categoryFilter) {
+      setSelectedCategories([categoryFilter]);
+    }
+  }, [categoryFilter]);
 
+  useEffect(() => {
+    let result = [...products];
     if (searchQuery) {
       result = result.filter(
         (p) =>
@@ -94,14 +97,17 @@ const ProductListPage: React.FC = () => {
     if (selectedCategories.length > 0) {
       result = result.filter((p) => selectedCategories.includes(p.category));
     }
-
     if (sortBy === "low-price") result.sort((a, b) => a.price - b.price);
     else if (sortBy === "high-price") result.sort((a, b) => b.price - a.price);
     else if (sortBy === "name")
       result.sort((a, b) => a.title.localeCompare(b.title));
-
     setFilteredProducts(result);
   }, [searchQuery, selectedCategories, sortBy, products]);
+
+  const handleLocalSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    navigate(`/products?search=${encodeURIComponent(localSearch)}`);
+  };
 
   const toggleCategory = (cat: string) => {
     setSelectedCategories((prev) =>
@@ -112,27 +118,47 @@ const ProductListPage: React.FC = () => {
   const getProductImage = (item: any) => {
     if (item.images)
       return Array.isArray(item.images) ? item.images[0] : item.images;
-    return item.image || "https://placehold.co/400x400?text=No+Image";
+    return "https://placehold.co/400x400?text=No+Image";
   };
 
   if (loading)
-    return <div className="py-40 text-center font-bold">Loading tech...</div>;
+    return (
+      <div className="py-40 text-center font-bold text-gray-400">
+        Loading products...
+      </div>
+    );
 
   return (
-    <div className="max-w-[1280px] mx-auto px-6 py-16">
-      <div className="mb-12">
-        <h1 className="text-4xl font-black mb-4">
-          {searchQuery ? `Results for "${searchQuery}"` : "All Products"}
-        </h1>
-        <p className="text-gray-500 font-medium">
-          {filteredProducts.length} items available
-        </p>
+    <div className="max-w-[1280px] mx-auto px-6 py-12">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
+        <div>
+          <h1 className="text-4xl font-black mb-3">
+            {searchQuery ? `Results for "${searchQuery}"` : "Explore Tech"}
+          </h1>
+          <p className="text-gray-500 font-medium">
+            {filteredProducts.length} items found
+          </p>
+        </div>
+
+        <form
+          onSubmit={handleLocalSearchSubmit}
+          className="relative w-full md:w-[400px]"
+        >
+          <MagnifyingGlassIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Search products in this list..."
+            value={localSearch}
+            onChange={(e) => setLocalSearch(e.target.value)}
+            className="w-full bg-[#F5F5F7] border-none rounded-2xl py-4 pl-12 pr-4 font-medium outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+          />
+        </form>
       </div>
 
       <div className="flex gap-12">
         <FilterSection>
           <div className="mb-10">
-            <h3 className="flex items-center gap-2 font-bold text-lg mb-6">
+            <h3 className="flex items-center gap-2 font-bold text-lg mb-6 text-black">
               <FunnelIcon className="w-5 h-5" /> Filter by Category
             </h3>
             <div className="flex flex-col gap-1">
@@ -149,8 +175,8 @@ const ProductListPage: React.FC = () => {
             </div>
           </div>
 
-          <div className="pt-8 border-t">
-            <h3 className="flex items-center gap-2 font-bold text-lg mb-6">
+          <div className="pt-8 border-t border-gray-100">
+            <h3 className="flex items-center gap-2 font-bold text-lg mb-6 text-black">
               <ArrowsUpDownIcon className="w-5 h-5" /> Sort by
             </h3>
             <select
@@ -198,21 +224,22 @@ const ProductListPage: React.FC = () => {
             </ProductGrid>
           ) : (
             <div className="py-24 text-center">
-              <div className="bg-[#F5F5F7] w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
-                <MagnifyingGlassIcon className="w-10 h-10 text-gray-300" />
+              <div className="bg-[#F5F5F7] w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 text-gray-300">
+                <MagnifyingGlassIcon className="w-10 h-10" />
               </div>
-              <h3 className="text-2xl font-bold mb-2">No results found.</h3>
+              <h3 className="text-2xl font-bold mb-2">No items found</h3>
               <p className="text-gray-500 mb-8">
-                Try using different keywords or filters.
+                Try adjusting your search or filters.
               </p>
               <button
                 onClick={() => {
+                  setLocalSearch("");
                   navigate("/products");
                   setSelectedCategories([]);
                 }}
                 className="bg-black text-white px-8 py-3 rounded-full font-bold hover:bg-gray-800 transition"
               >
-                Clear all filters
+                Reset Search
               </button>
             </div>
           )}

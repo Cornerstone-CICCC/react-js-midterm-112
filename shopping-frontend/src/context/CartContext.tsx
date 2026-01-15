@@ -15,6 +15,7 @@ interface CartContextType {
   addToCart: (product: any, quantity: number) => void;
   removeFromCart: (productId: string) => void;
   updateQuantity: (productId: string, newQty: number) => void;
+  clearCart: () => void;
   loading: boolean;
 }
 
@@ -25,8 +26,16 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(false);
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
 
+  const clearCart = () => {
+    setCartItems([]);
+    localStorage.removeItem("cart");
+  };
+
   const fetchCart = async () => {
-    if (!user?._id) return;
+    if (!user?._id) {
+      setCartItems([]);
+      return;
+    }
     try {
       setLoading(true);
       const response = await fetch(`http://localhost:3500/carts/${user._id}`);
@@ -124,7 +133,14 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <CartContext.Provider
-      value={{ cartItems, addToCart, removeFromCart, updateQuantity, loading }}
+      value={{
+        cartItems,
+        addToCart,
+        removeFromCart,
+        updateQuantity,
+        clearCart,
+        loading,
+      }}
     >
       {children}
     </CartContext.Provider>
