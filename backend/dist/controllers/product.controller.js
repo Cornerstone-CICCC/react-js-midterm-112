@@ -24,6 +24,12 @@ const getAllProducts = (req, res) => __awaiter(void 0, void 0, void 0, function*
         res.status(500).json({ message: "Server error" });
     }
 });
+// // Get products by category
+// const getProductByCategory = async(req: Request<{}, {}, {}, {category: string}>, res:Response) => {
+//   try{
+//     const products = await productService.getByCategory(category)
+//   }
+// }
 exports.default = {
     getAllProducts,
 };

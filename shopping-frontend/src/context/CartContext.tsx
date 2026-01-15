@@ -37,12 +37,15 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const isInitialMount = useRef(true);
 
+  // 1. 장바구니 데이터 불러오기
   useEffect(() => {
     const loadCart = async () => {
       setIsLoading(true);
-      if (user) {
+
+      // ✅ 수정 포인트: user.id -> user._id (백엔드 사양)
+      if (user && user._id) {
         try {
-          const response = await fetch(`${API_URL}?userId=${user.id}`);
+          const response = await fetch(`${API_URL}?userId=${user._id}`);
           if (response.ok) {
             const data = await response.json();
             setCartItems(data);
@@ -51,17 +54,21 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
           console.error("Failed to load cart from DB:", error);
         }
       } else {
+        // 로그인 안했을 때는 로컬스토리지에서 가져오기
         const savedCart = localStorage.getItem("tech_market_cart");
         if (savedCart) {
           setCartItems(JSON.parse(savedCart));
+        } else {
+          setCartItems([]);
         }
       }
       setIsLoading(false);
     };
 
     loadCart();
-  }, [user]);
+  }, [user]); // 유저 로그인/로그아웃 시 재실행
 
+  // 2. 비로그인 상태일 때 로컬스토리지 자동 저장
   useEffect(() => {
     if (isInitialMount.current) {
       isInitialMount.current = false;
@@ -73,6 +80,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   }, [cartItems, user, isLoading]);
 
+  // 3. 장바구니 추가
   const addToCart = async (product: any, quantity: number) => {
     const newItem = {
       id: product.id,
@@ -82,12 +90,12 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
       quantity: quantity,
     };
 
-    if (user) {
+    if (user && user._id) {
       try {
         await fetch(API_URL, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ...newItem, userId: user.id }),
+          body: JSON.stringify({ ...newItem, userId: user._id }), // ✅ user._id 사용
         });
       } catch (error) {
         console.error("Failed to save to DB:", error);
@@ -107,16 +115,17 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
     });
   };
 
+  // 4. 장바구니 삭제/감소
   const removeFromCart = async (
     productId: number,
     decreaseOnly: boolean = false
   ) => {
-    if (user) {
+    if (user && user._id) {
       try {
         await fetch(`${API_URL}/${productId}`, {
           method: "DELETE",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ userId: user.id, decreaseOnly }),
+          body: JSON.stringify({ userId: user._id, decreaseOnly }), // ✅ user._id 사용
         });
       } catch (error) {
         console.error("Failed to delete from DB:", error);

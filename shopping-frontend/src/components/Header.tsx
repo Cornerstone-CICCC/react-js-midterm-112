@@ -14,7 +14,6 @@ import { useAuth } from "../context/AuthContext";
 import { useWishlist } from "../context/WishlistContext";
 
 const SearchContainer = styled.form`
-  // div에서 form으로 변경하여 submit 이벤트 처리
   background-color: #f5f5f5;
   border-radius: 8px;
   display: flex;
@@ -76,8 +75,6 @@ const Header: React.FC = () => {
   const { user, logout } = useAuth();
   const { wishlistItems } = useWishlist();
   const [isCartOpen, setIsCartOpen] = useState(false);
-
-  // 검색을 위한 상태 추가
   const [keyword, setKeyword] = useState("");
   const navigate = useNavigate();
 
@@ -88,13 +85,11 @@ const Header: React.FC = () => {
     }
   };
 
-  // 검색 실행 함수
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (keyword.trim()) {
-      // 엔터를 치면 /products 페이지로 검색어를 들고 이동합니다.
       navigate(`/products?search=${encodeURIComponent(keyword)}`);
-      setKeyword(""); // 입력창 초기화
+      setKeyword("");
     }
   };
 
@@ -122,7 +117,6 @@ const Header: React.FC = () => {
           </NavLink>
         </nav>
 
-        {/* Search 영역: onSubmit 연결 및 input value/onChange 연결 */}
         <SearchContainer
           className="hidden md:flex mx-4"
           onSubmit={handleSearch}
@@ -137,6 +131,7 @@ const Header: React.FC = () => {
         </SearchContainer>
 
         <div className="flex items-center gap-5">
+          {/* Wishlist */}
           <Link to="/wishlist" className="hover:opacity-50 transition relative">
             <IconButton aria-label="Favorites">
               <HeartIcon />
@@ -146,6 +141,7 @@ const Header: React.FC = () => {
             </IconButton>
           </Link>
 
+          {/* Cart Dropdown Area */}
           <div
             className="relative h-[88px] flex items-center"
             onMouseEnter={() => setIsCartOpen(true)}
@@ -236,16 +232,21 @@ const Header: React.FC = () => {
             )}
           </div>
 
+          {/* User Section: 로그인 여부에 따른 렌더링 수정 */}
           {user ? (
             <div className="flex items-center gap-3 border-l pl-5">
-              <div className="hidden sm:flex flex-col items-end leading-tight">
+              {/* 마이페이지 링크로 loginId 표시 */}
+              <Link
+                to="/mypage"
+                className="flex flex-col items-end leading-tight hover:opacity-70 transition group"
+              >
                 <span className="text-[10px] text-gray-400 font-bold uppercase tracking-tight">
                   Welcome back,
                 </span>
-                <span className="text-[14px] font-bold text-black">
-                  {user.username}
+                <span className="text-[14px] font-bold text-black group-hover:text-blue-600 transition">
+                  {user.loginId} 님
                 </span>
-              </div>
+              </Link>
               <button
                 onClick={handleLogout}
                 className="p-2 hover:bg-red-50 rounded-full transition text-gray-400 hover:text-red-500"

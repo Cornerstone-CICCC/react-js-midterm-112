@@ -14,6 +14,16 @@ const product_model_1 = require("../models/product.model");
 const getAll = () => __awaiter(void 0, void 0, void 0, function* () {
     return yield product_model_1.Product.find();
 });
+// Get products by category
+const getByCategory = (category) => __awaiter(void 0, void 0, void 0, function* () {
+    if (!category || typeof category !== "string") {
+        return [];
+    }
+    return yield product_model_1.Product.find({
+        category: { $regex: category, $options: "i" },
+    });
+});
 exports.default = {
     getAll,
+    getByCategory,
 };
