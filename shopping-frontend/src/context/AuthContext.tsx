@@ -5,6 +5,7 @@ export interface User {
   loginId: string;
   firstname: string;
   lastname: string;
+  role: string;
 }
 
 interface AuthContextType {
