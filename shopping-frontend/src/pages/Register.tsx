@@ -105,7 +105,7 @@ const RegisterPage: React.FC = () => {
           <input
             type="text"
             name="loginId"
-            placeholder="tech_master"
+            placeholder="username"
             required
             className="w-full border border-gray-100 bg-gray-50 p-4 rounded-2xl outline-none focus:bg-white focus:border-black transition-all"
             onChange={handleChange}

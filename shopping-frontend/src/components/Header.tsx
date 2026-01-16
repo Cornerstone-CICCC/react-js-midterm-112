@@ -8,6 +8,7 @@ import {
   ArrowRightOnRectangleIcon,
   PlusIcon,
   MinusIcon,
+  ShieldCheckIcon,
 } from "@heroicons/react/24/outline";
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
@@ -69,21 +70,18 @@ const Badge = styled.span`
 `;
 
 const Header: React.FC = () => {
-  const { cartItems, removeFromCart, updateQuantity } = useCart();
+  const { cartItems, removeFromCart, updateQuantity, clearCart } = useCart();
   const { user, logout } = useAuth();
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [keyword, setKeyword] = useState("");
   const navigate = useNavigate();
 
   const totalCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);
-  const totalPrice = cartItems.reduce(
-    (acc, item) => acc + (item.price || 0) * item.quantity,
-    0
-  );
 
   const handleLogout = () => {
     if (window.confirm("Are you sure you want to logout?")) {
       logout();
+      clearCart();
       navigate("/");
     }
   };
@@ -96,21 +94,9 @@ const Header: React.FC = () => {
     }
   };
 
-  const navLinkStyle = ({ isActive }: { isActive: boolean }) =>
-    `text-[16px] font-medium transition-colors ${
-      isActive ? "text-black font-bold" : "text-[#989898] hover:text-black"
-    }`;
-
-  const getProductImage = (item: any) => {
-    if (item.images)
-      return Array.isArray(item.images) ? item.images[0] : item.images;
-    return item.image || "https://placehold.co/150x150?text=No+Image";
-  };
-
   return (
     <header className="w-full bg-white border-b border-gray-100 h-[88px] flex items-center sticky top-0 z-50">
       <div className="max-w-[1120px] mx-auto w-full px-4 flex items-center justify-between gap-4">
-        {/* Logo */}
         <Link
           to="/"
           className="text-[20px] md:text-[24px] font-bold text-black tracking-tighter shrink-0"
@@ -122,7 +108,11 @@ const Header: React.FC = () => {
           <NavLink
             to="/"
             className={({ isActive }) =>
-              `text-[14px] md:text-[16px] font-medium transition-colors ${isActive ? "text-black font-bold" : "text-[#989898] hover:text-black"}`
+              `text-[14px] md:text-[16px] font-medium transition-colors ${
+                isActive
+                  ? "text-black font-bold"
+                  : "text-[#989898] hover:text-black"
+              }`
             }
           >
             Home
@@ -130,7 +120,11 @@ const Header: React.FC = () => {
           <NavLink
             to="/products"
             className={({ isActive }) =>
-              `text-[14px] md:text-[16px] font-medium transition-colors ${isActive ? "text-black font-bold" : "text-[#989898] hover:text-black"}`
+              `text-[14px] md:text-[16px] font-medium transition-colors ${
+                isActive
+                  ? "text-black font-bold"
+                  : "text-[#989898] hover:text-black"
+              }`
             }
           >
             Product
@@ -239,6 +233,16 @@ const Header: React.FC = () => {
 
           {user ? (
             <div className="flex items-center gap-2 border-l pl-3 md:pl-5 ml-1">
+              {user.role === "admin" && (
+                <Link
+                  to="/admin/dashboard"
+                  className="flex items-center gap-1 bg-red-50 text-red-600 px-3 py-1.5 rounded-lg hover:bg-red-100 transition mr-2"
+                >
+                  <ShieldCheckIcon className="w-4 h-4" />
+                  <span className="text-[12px] font-bold">Admin</span>
+                </Link>
+              )}
+
               <Link
                 to="/mypage"
                 className="hidden sm:flex flex-col items-end leading-tight group"
@@ -247,12 +251,13 @@ const Header: React.FC = () => {
                   Welcome
                 </span>
                 <span className="text-[12px] font-bold text-black group-hover:text-blue-600">
-                  {user.loginId}
+                  {user.firstname || user.loginId}
                 </span>
               </Link>
               <button
                 onClick={handleLogout}
                 className="p-2 text-gray-400 hover:text-red-500 transition"
+                title="Logout"
               >
                 <ArrowRightOnRectangleIcon className="w-6 h-6" />
               </button>

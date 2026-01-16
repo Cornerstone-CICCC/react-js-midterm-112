@@ -7,6 +7,11 @@ import ProductDetailPage from "../pages/ProductDetailPage";
 import CartPage from "../pages/CartPage";
 import MyPage from "../pages/MyPage";
 
+import AdminRoute from "../components/AdminRoute";
+import AdminDashboard from "../pages/admin/AdminDashboard";
+import AdminProductManage from "../pages/admin/AdminProductManage";
+import AdminUserManage from "../pages/admin/AdminUserManage";
+
 const AppRouter = () => {
   return (
     <Routes>
@@ -20,6 +25,12 @@ const AppRouter = () => {
       <Route path="/mypage" element={<MyPage />} />
 
       <Route path="/cart" element={<CartPage />} />
+
+      <Route element={<AdminRoute />}>
+        <Route path="/admin/dashboard" element={<AdminDashboard />} />
+        <Route path="/admin/products" element={<AdminProductManage />} />
+        <Route path="/admin/users" element={<AdminUserManage />} />
+      </Route>
 
       <Route
         path="*"
