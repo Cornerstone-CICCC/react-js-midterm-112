@@ -49,7 +49,6 @@ const AdminUserManage: React.FC = () => {
         credentials: "include",
       });
       if (res.ok) {
-        alert("User has been deleted successfully.");
         setUsers((prev) => prev.filter((u) => u._id !== id));
       }
     } catch (err) {

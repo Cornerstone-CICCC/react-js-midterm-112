@@ -79,11 +79,9 @@ const Header: React.FC = () => {
   const totalCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);
 
   const handleLogout = () => {
-    if (window.confirm("Are you sure you want to logout?")) {
-      logout();
-      clearCart();
-      navigate("/");
-    }
+    logout();
+    clearCart();
+    navigate("/");
   };
 
   const handleSearch = (e: React.FormEvent) => {
@@ -191,7 +189,7 @@ const Header: React.FC = () => {
                                 item.quantity > 1
                                   ? updateQuantity(
                                       item.productId,
-                                      item.quantity - 1
+                                      item.quantity - 1,
                                     )
                                   : removeFromCart(item.productId);
                               }}
@@ -207,7 +205,7 @@ const Header: React.FC = () => {
                                 e.preventDefault();
                                 updateQuantity(
                                   item.productId,
-                                  item.quantity + 1
+                                  item.quantity + 1,
                                 );
                               }}
                               className="px-1.5 py-1 hover:bg-gray-100"

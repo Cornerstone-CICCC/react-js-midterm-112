@@ -58,7 +58,6 @@ const AdminProductManage: React.FC = () => {
           credentials: "include",
         });
         if (res.ok) {
-          alert("Product has been deleted.");
           setProducts((prev) => prev.filter((p) => p._id !== id));
         } else {
           alert("You do not have permission or an error occurred.");
