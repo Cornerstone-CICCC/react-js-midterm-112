@@ -1,0 +1,57 @@
+import React, { createContext, useContext, useState } from "react";
+
+export interface User {
+  _id: string;
+  loginId: string;
+  firstname: string;
+  lastname: string;
+  role: string;
+}
+
+interface AuthContextType {
+  user: User | null;
+  login: (user: User) => void;
+  logout: () => void;
+}
+
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
+  const [user, setUser] = useState<User | null>(() => {
+    const savedUser = localStorage.getItem("tech_market_user");
+    try {
+      return savedUser ? JSON.parse(savedUser) : null;
+    } catch (error) {
+      console.error("Failed to parse user data from localStorage", error);
+      return null;
+    }
+  });
+
+  const login = (userData: User) => {
+    setUser(userData);
+    localStorage.setItem("tech_market_user", JSON.stringify(userData));
+  };
+
+  const logout = () => {
+    setUser(null);
+    localStorage.removeItem("tech_market_user");
+
+    window.location.href = "/";
+  };
+
+  return (
+    <AuthContext.Provider value={{ user, login, logout }}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
+
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
+  return context;
+};
