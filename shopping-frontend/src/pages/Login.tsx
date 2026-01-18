@@ -37,15 +37,13 @@ const LoginPage: React.FC = () => {
       const data = await response.json();
 
       if (response.ok) {
-        console.log("Login Success:", data);
-
         const userData = data.user || data;
         login(userData);
 
         navigate("/", { replace: true });
       } else {
         setErrorMessage(
-          data.message || "Invalid ID or Password. Please try again."
+          data.message || "Invalid ID or Password. Please try again.",
         );
       }
     } catch (error) {
