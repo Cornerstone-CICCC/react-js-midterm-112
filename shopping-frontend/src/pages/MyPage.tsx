@@ -39,7 +39,6 @@ const MyPage: React.FC = () => {
 
       if (response.ok) {
         login(data);
-        alert("Profile updated successfully!");
       } else {
         alert(`Update failed: ${data.message || "Unknown error"}`);
       }
@@ -52,7 +51,7 @@ const MyPage: React.FC = () => {
   const handleDeleteAccount = async () => {
     if (
       !window.confirm(
-        "Are you sure you want to delete your account? This action cannot be undone."
+        "Are you sure you want to delete your account? This action cannot be undone.",
       )
     )
       return;
@@ -63,7 +62,6 @@ const MyPage: React.FC = () => {
       });
 
       if (response.ok) {
-        alert("Account deleted. Thank you for using our service.");
         logout();
         navigate("/");
       } else {

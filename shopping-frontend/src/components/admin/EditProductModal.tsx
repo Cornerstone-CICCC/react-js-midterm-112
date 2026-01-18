@@ -59,11 +59,10 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
             stock: Number(formData.stock),
             thumbnail: formData.images,
           }),
-        }
+        },
       );
 
       if (response.ok) {
-        alert("Product information has been updated successfully.");
         onSuccess();
         onClose();
       } else {

@@ -42,7 +42,6 @@ const AddProductModal: React.FC<AddProductModalProps> = ({
       });
 
       if (response.ok) {
-        alert("Product has been registered successfully.");
         onSuccess();
         onClose();
         setFormData({
